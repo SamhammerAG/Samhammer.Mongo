@@ -1,16 +1,12 @@
-name: ci
+name: cicd
 
 on:
   push:
-    branches:
-      - '**'
-    tags-ignore:
-      - '*'
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     env:
       DOTNET_NOLOGO: true
     defaults:
@@ -32,3 +28,6 @@ jobs:
         reporter: github-check
         line_exclude_regex: ".*(warning|error) CS0618:.*"
     - run: dotnet test -c Release --no-build --logger "GitHubActions;report-warnings=false"
+    - run: dotnet pack -c Release --output nuget-packages
+    - if: startsWith(github.ref, 'refs/tags/') 
+      run: cd nuget-packages; dotnet nuget push "**/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --skip-duplicate --source https://api.nuget.org/v3/index.json
