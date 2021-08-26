@@ -1,0 +1,35 @@
+name: publish
+
+on:
+  push:
+    tags:
+       - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DOTNET_NOLOGO: true
+    defaults:
+      run:
+        working-directory: src
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.x
+    - run: echo "::remove-matcher owner=csc::"
+    - uses: reviewdog/action-setup@v1
+    - run: dotnet --info
+    - run: dotnet restore
+    - run: dotnet build -c Release --no-restore
+    - uses: SamhammerAG/dotnet-reviewdog-action@v1
+      with:
+        workdir: Sources
+        reporter: github-check
+        line_exclude_regex: ".*(warning|error) CS0618:.*"
+    - run: dotnet test -c Release --no-build --logger "GitHubActions;report-warnings=false"
+    - run: dotnet pack -c Release --output nuget-packages
+    - run: dotnet nuget push nuget-packages/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+
