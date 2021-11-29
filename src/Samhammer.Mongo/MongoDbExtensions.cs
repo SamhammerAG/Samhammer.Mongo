@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Dynamic;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Samhammer.Mongo.Utils;
@@ -29,6 +30,11 @@ namespace Samhammer.Mongo
         private static void PostConfigureMongo(MongoDbOptions options)
         {
             options.DatabaseName = options.DatabaseName.Truncate(MongoDbOptions.MaxDatabaseNameLength).ToLower();
+        }
+
+        public static void CreateMongoDbConnection(this IServiceCollection services)
+        {
+            services.AddHostedService<InitializeConnectionService>();
         }
     }
 }
