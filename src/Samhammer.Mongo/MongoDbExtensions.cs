@@ -2,6 +2,7 @@
 using System.Dynamic;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Driver;
 using Samhammer.Mongo.Utils;
 
 namespace Samhammer.Mongo
@@ -32,7 +33,7 @@ namespace Samhammer.Mongo
             options.DatabaseName = options.DatabaseName.Truncate(MongoDbOptions.MaxDatabaseNameLength).ToLower();
         }
 
-        public static void CreateMongoDbConnection(this IServiceCollection services)
+        public static void CreateMongoDbConnection(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddHostedService<InitializeConnectionService>();
         }

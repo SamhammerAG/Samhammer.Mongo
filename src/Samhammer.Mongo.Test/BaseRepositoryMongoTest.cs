@@ -129,7 +129,7 @@ namespace Samhammer.Mongo.Test
 
         private async Task CleanDb()
         {
-            var adminClient = mongoDbConnector.GetMongoClient();
+            var adminClient = mongoDbConnector.GetOrCreateConnection();
             await adminClient.DropDatabaseAsync(mongoDbOptions.DatabaseName);
         }
 

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Concurrent;
+using System.Threading;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
@@ -17,7 +17,7 @@ namespace Samhammer.Mongo
 
         private readonly Lazy<Action> initConventions;
 
-        private static readonly ConcurrentDictionary<string, MongoClient> Clients = new ConcurrentDictionary<string, MongoClient>();
+        private static MongoClient client;
 
         public MongoDbConnector(IOptions<MongoDbOptions> options, ILogger<MongoDbConnector> logger, IMongoConventions conventions)
         {
@@ -33,14 +33,13 @@ namespace Samhammer.Mongo
 
         public IMongoDatabase GetMongoDatabase()
         {
-            var mongoClient = GetMongoClient();
-            return mongoClient.GetDatabase(Options.Value.DatabaseName);
+            GetOrCreateConnection();
+            return client.GetDatabase(Options.Value.DatabaseName);
         }
 
-        public MongoClient GetMongoClient()
+        public MongoClient GetOrCreateConnection()
         {
-            var connectionKey = $"{Options.Value.DatabaseHost}|{Options.Value.DatabaseName}|{Options.Value.UserName}";
-            return Clients.GetOrAdd(connectionKey, _ => CreateMongoClient());
+            return LazyInitializer.EnsureInitialized(ref client, CreateMongoClient);
         }
 
         private MongoClient CreateMongoClient()
@@ -66,5 +65,7 @@ namespace Samhammer.Mongo
     public interface IMongoDbConnector
     {
         IMongoDatabase GetMongoDatabase();
+
+        MongoClient GetOrCreateConnection();
     }
 }

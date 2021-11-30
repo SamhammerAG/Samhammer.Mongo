@@ -20,7 +20,7 @@ namespace Samhammer.Mongo
             {
                 var mongoConnector = scope.ServiceProvider
                     .GetRequiredService<IMongoDbConnector>();
-                var connection = mongoConnector.GetMongoDatabase();
+                mongoConnector.GetOrCreateConnection();
             }
 
             await CompletedTask();
