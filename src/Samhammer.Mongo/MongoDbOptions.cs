@@ -13,5 +13,7 @@
         public string DatabaseName { get; set; }
 
         public string DatabaseHost { get; set; }
+
+        public bool TraceDriver { get; set; }
     }
 }

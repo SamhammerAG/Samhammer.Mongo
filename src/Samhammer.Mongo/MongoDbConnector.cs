@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Core.Events;
+using MongoDB.Driver.Core.Events.Diagnostics;
 using Samhammer.Mongo.Utils;
 
 namespace Samhammer.Mongo
@@ -42,6 +46,20 @@ namespace Samhammer.Mongo
             return LazyInitializer.EnsureInitialized(ref client, CreateMongoClient);
         }
 
+        public async Task<bool> Ping()
+        {
+            var db = GetMongoDatabase();
+            var ping = await db
+                .RunCommandAsync<BsonDocument>(new BsonDocument { { "ping", 1 } }, default);
+
+            if (ping.TryGetValue("ok", out var ok))
+            {
+                return ok.Equals(1.0) || ok.Equals(1);
+            }
+
+            return false;
+        }
+
         private MongoClient CreateMongoClient()
         {
             Logger.LogInformation(
@@ -56,9 +74,29 @@ namespace Samhammer.Mongo
             mongoClientSettings.ClusterConfigurator = cb =>
             {
                 cb.Subscribe<CommandStartedEvent>(e => Logger.LogTrace("MongoDb command: {Command}", e.Command.ToJson()));
+
+                if (Options.Value.TraceDriver)
+                {
+                    cb.Subscribe(GetCSharpDriverLogger());
+                }
             };
 
             return new MongoClient(mongoClientSettings);
+        }
+
+        private TraceSourceEventSubscriber GetCSharpDriverLogger()
+        {
+            var logFilename = "mongo.log";
+            File.Delete(logFilename);
+
+            var fileStream = new FileStream(logFilename, FileMode.Append);
+            var listener = new TextWriterTraceListener(fileStream) { TraceOutputOptions = TraceOptions.DateTime };
+
+            var traceSource = new TraceSource("CSHARPDRIVER", SourceLevels.All);
+            traceSource.Listeners.Clear();
+            traceSource.Listeners.Add(listener);
+            
+            return new TraceSourceEventSubscriber(traceSource);
         }
     }
 
@@ -67,5 +105,7 @@ namespace Samhammer.Mongo
         IMongoDatabase GetMongoDatabase();
 
         MongoClient GetOrCreateConnection();
+
+        Task<bool> Ping();
     }
 }
