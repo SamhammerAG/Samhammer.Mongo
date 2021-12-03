@@ -78,7 +78,7 @@ namespace Samhammer.Mongo
         {
             mongoClientSettings.ClusterConfigurator = cb =>
             {
-                cb.Subscribe<CommandStartedEvent>(e => Logger.LogTrace("MongoDb command: {Command}", e.Command.ToJson()));
+                cb.Subscribe<CommandStartedEvent>(e => Logger.LogTrace("mongodb command: {Command}", e.Command.ToJson()));
 
                 if (Options.Value.TraceDriver)
                 {

@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Samhammer.Mongo
 {
@@ -9,31 +10,32 @@ namespace Samhammer.Mongo
     {
         private IServiceScopeFactory Services { get; }
 
-        public InitializeConnectionService(IServiceScopeFactory services)
+        private ILogger<InitializeConnectionService> Logger { get; }
+
+        public InitializeConnectionService(IServiceScopeFactory services, ILogger<InitializeConnectionService> logger)
         {
             Services = services;
+            Logger = logger;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             using (var scope = Services.CreateScope())
             {
-                var mongoConnector = scope.ServiceProvider
-                    .GetRequiredService<IMongoDbConnector>();
-                mongoConnector.GetMongoClient();
+                Logger.LogInformation("mongodb connecting...");
+
+                var mongoConnector = scope.ServiceProvider.GetRequiredService<IMongoDbConnector>();
+                await mongoConnector.Ping();
+
+                Logger.LogInformation("mongodb connected!");
             }
 
-            await CompletedTask();
+            await Task.CompletedTask;
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            await CompletedTask();
-        }
-
-        protected virtual Task CompletedTask()
-        {
-            return Task.CompletedTask;
+            await Task.CompletedTask;
         }
     }
 }

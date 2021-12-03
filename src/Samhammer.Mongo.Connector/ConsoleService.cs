@@ -23,7 +23,7 @@ namespace Samhammer.Mongo.Connector
         {
             using (var scope = _services.CreateScope())
             {
-                _logger.LogInformation("mongo connecting...");
+                _logger.LogInformation("mongodb connecting...");
 
                 try
                 {
@@ -34,12 +34,12 @@ namespace Samhammer.Mongo.Connector
 
                     connectTimer.Stop();
 
-                    _logger.LogInformation("mongo connect time: {ConnectTime}", connectTimer.Elapsed);
-                    _logger.LogInformation("mongo ping result: {Ping}", ping);
+                    _logger.LogInformation("mongodb connect time: {ConnectTime}", connectTimer.Elapsed);
+                    _logger.LogInformation("mongodb ping result: {Ping}", ping);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "mongo connect failed");
+                    _logger.LogError(ex, "mongodb connect failed");
                 }
             }
         }
