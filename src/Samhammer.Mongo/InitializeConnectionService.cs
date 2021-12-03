@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System;
+using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -22,12 +24,21 @@ namespace Samhammer.Mongo
         {
             using (var scope = Services.CreateScope())
             {
-                Logger.LogInformation("mongodb connecting...");
+                try
+                {
+                    Logger.LogInformation("mongodb connecting...");
+                    var mongoConnector = scope.ServiceProvider.GetRequiredService<IMongoDbConnector>();
 
-                var mongoConnector = scope.ServiceProvider.GetRequiredService<IMongoDbConnector>();
-                await mongoConnector.Ping();
+                    var connectTimer = Stopwatch.StartNew();
+                    await mongoConnector.Ping();
+                    connectTimer.Stop();
 
-                Logger.LogInformation("mongodb connected!");
+                    Logger.LogInformation("mongodb connected in {ConnectTime} ms", (int)connectTimer.Elapsed.TotalMilliseconds);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "mongodb connect failed");
+                }
             }
 
             await Task.CompletedTask;
