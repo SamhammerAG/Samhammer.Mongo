@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,31 +18,30 @@ namespace Samhammer.Mongo
 
         private ILogger<MongoDbConnector> Logger { get; }
 
-        private readonly Lazy<Action> initConventions;
+        private IMongoConventions Conventions { get; }
 
         private static MongoClient client;
+
+        private static bool initialized ;
+
+        private static object initializeLock = new object();
 
         public MongoDbConnector(IOptions<MongoDbOptions> options, ILogger<MongoDbConnector> logger, IMongoConventions conventions)
         {
             Options = options;
             Logger = logger;
-
-            initConventions = new Lazy<Action>(() =>
-            {
-                conventions.Register();
-                return () => { };
-            });
+            Conventions = conventions;
         }
 
         public IMongoDatabase GetMongoDatabase()
         {
-            GetOrCreateConnection();
-            return client.GetDatabase(Options.Value.DatabaseName);
+            var mongoClient = GetMongoClient();
+            return mongoClient.GetDatabase(Options.Value.DatabaseName);
         }
 
-        public MongoClient GetOrCreateConnection()
+        public MongoClient GetMongoClient()
         {
-            return LazyInitializer.EnsureInitialized(ref client, CreateMongoClient);
+            return LazyInitializer.EnsureInitialized(ref client, ref initialized, ref initializeLock, InitClient);
         }
 
         public async Task<bool> Ping()
@@ -60,17 +58,24 @@ namespace Samhammer.Mongo
             return false;
         }
 
-        private MongoClient CreateMongoClient()
+        private MongoClient InitClient()
         {
             Logger.LogInformation(
-                "Creating new connection to database {DatabaseName} on {DatabaseHost} as user {UserName}",
+                "Creating new connection to database {DatabaseName} on {ConnectionString} as user {UserName}",
                 Options.Value.DatabaseName,
-                Options.Value.DatabaseHost,
+                Options.Value.ConnectionString,
                 Options.Value.UserName);
 
-            initConventions.Value();
+            Conventions.Register();
 
             var mongoClientSettings = MongoDbUtils.GetMongoClientSettings(Options.Value);
+            RegisterLogging(mongoClientSettings);
+
+            return new MongoClient(mongoClientSettings);
+        }
+
+        private void RegisterLogging(MongoClientSettings mongoClientSettings)
+        {
             mongoClientSettings.ClusterConfigurator = cb =>
             {
                 cb.Subscribe<CommandStartedEvent>(e => Logger.LogTrace("MongoDb command: {Command}", e.Command.ToJson()));
@@ -80,8 +85,6 @@ namespace Samhammer.Mongo
                     cb.Subscribe(GetCSharpDriverLogger());
                 }
             };
-
-            return new MongoClient(mongoClientSettings);
         }
 
         private TraceSourceEventSubscriber GetCSharpDriverLogger()
@@ -95,7 +98,7 @@ namespace Samhammer.Mongo
             var traceSource = new TraceSource("CSHARPDRIVER", SourceLevels.All);
             traceSource.Listeners.Clear();
             traceSource.Listeners.Add(listener);
-            
+       
             return new TraceSourceEventSubscriber(traceSource);
         }
     }
@@ -104,7 +107,7 @@ namespace Samhammer.Mongo
     {
         IMongoDatabase GetMongoDatabase();
 
-        MongoClient GetOrCreateConnection();
+        MongoClient GetMongoClient();
 
         Task<bool> Ping();
     }
