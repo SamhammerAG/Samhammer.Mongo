@@ -22,7 +22,7 @@ namespace Samhammer.Mongo
 
         private static MongoClient client;
 
-        private static bool initialized ;
+        private static bool initialized;
 
         private static object initializeLock = new object();
 

@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
-using MongoDB.Driver;
 using NSubstitute;
 using Xunit;
 using Xunit.Abstractions;
@@ -136,8 +135,8 @@ namespace Samhammer.Mongo.Test
                 DatabaseHost = "localhost:27017",
                 DatabaseName = "samhammer-mongo",
                 AuthDatabaseName = "admin",
-                UserName = "",
-                Password = "",
+                UserName = null,
+                Password = null,
             };
         }
 
