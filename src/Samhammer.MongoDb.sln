@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samhammer.Mongo.Abstraction
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samhammer.Mongo.Test", "Samhammer.Mongo.Test\Samhammer.Mongo.Test.csproj", "{2F144BB7-60AC-45B5-992C-FB1CAF5E86FC}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Samhammer.Mongo.Connector", "Samhammer.Mongo.Connector\Samhammer.Mongo.Connector.csproj", "{310B7CCC-85C6-408C-90EF-44B026DF2F75}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{2F144BB7-60AC-45B5-992C-FB1CAF5E86FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2F144BB7-60AC-45B5-992C-FB1CAF5E86FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2F144BB7-60AC-45B5-992C-FB1CAF5E86FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{310B7CCC-85C6-408C-90EF-44B026DF2F75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{310B7CCC-85C6-408C-90EF-44B026DF2F75}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{310B7CCC-85C6-408C-90EF-44B026DF2F75}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{310B7CCC-85C6-408C-90EF-44B026DF2F75}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

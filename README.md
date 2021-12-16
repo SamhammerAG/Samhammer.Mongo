@@ -28,7 +28,8 @@ This package provides access to mongodb over the mongodb driver. It includes bas
     "Password": "dbpassword",
     "DatabaseName": "dbname",
     "AuthDatabaseName": "admin", // defaults to the database name
-    "DatabaseHost": "dbhost.tld"
+    "DatabaseHost": "dbhost.tld",
+    "ConnectionString": "mongodb://dbhost.tld" // alternative to DatabaseHost
   },
 ```
 

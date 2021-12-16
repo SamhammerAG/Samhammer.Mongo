@@ -6,6 +6,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Samhammer.Mongo.Test
 {
@@ -14,9 +15,12 @@ namespace Samhammer.Mongo.Test
         private readonly BaseRepositoryMongo<TestUserModel> repository;
         private readonly MongoDbConnector mongoDbConnector;
         private readonly MongoDbOptions mongoDbOptions;
+        private readonly ITestOutputHelper output;
 
-        public BaseRepositoryMongoTest()
+        public BaseRepositoryMongoTest(ITestOutputHelper output)
         {
+            this.output = output;
+
             var connectorLogger = Substitute.For<ILogger<MongoDbConnector>>();
             var repoLogger = Substitute.For<ILogger<BaseRepositoryMongo<TestUserModel>>>();
             var conventions = Substitute.For<IMongoConventions>();
@@ -33,6 +37,8 @@ namespace Samhammer.Mongo.Test
         {
             // Change the connection settings in GetMongoDbOptions() before debugging
             Skip.IfNot(Debugger.IsAttached, "Only for debugging");
+
+            await Connect();
 
             var user1 = new TestUserModel
             {
@@ -64,6 +70,15 @@ namespace Samhammer.Mongo.Test
 
             await Delete(user1);
             await DeleteAll();
+        }
+
+        private async Task Connect()
+        {
+            var connectTimer = Stopwatch.StartNew();
+            await mongoDbConnector.Ping();
+            connectTimer.Stop();
+
+            output.WriteLine("mongo connect time: {0}", connectTimer.Elapsed);
         }
 
         private async Task SaveNew(TestUserModel user)
@@ -115,15 +130,13 @@ namespace Samhammer.Mongo.Test
 
         private MongoDbOptions GetMongoDbOptions()
         {
-            var guid = Guid.NewGuid().ToString();
-
             return new MongoDbOptions
             {
-                DatabaseHost = "mymongodb.mydomain.tld:27017",
-                DatabaseName = $"mydatabase-{guid}",
+                DatabaseHost = "localhost:27017",
+                DatabaseName = "samhammer-mongo",
                 AuthDatabaseName = "admin",
-                UserName = $"admin",
-                Password = "test",
+                UserName = null,
+                Password = null,
             };
         }
 

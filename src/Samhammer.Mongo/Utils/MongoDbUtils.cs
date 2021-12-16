@@ -10,8 +10,16 @@ namespace Samhammer.Mongo.Utils
     {
         public static MongoClientSettings GetMongoClientSettings(MongoDbOptions options, string appName = "")
         {
-            var settings = MongoClientSettings.FromConnectionString($"mongodb://{options.DatabaseHost}");
-            settings.Credential = MongoCredential.CreateCredential(options.AuthDatabaseName ?? options.DatabaseName, options.UserName, options.Password);
+            var settings = MongoClientSettings.FromConnectionString(options.ConnectionString);
+
+            if (!string.IsNullOrEmpty(options.UserName))
+            {
+                settings.Credential = MongoCredential.CreateCredential(
+                    options.AuthDatabaseName ?? options.DatabaseName,
+                    options.UserName,
+                    options.Password);
+            }
+
             settings.ApplicationName = GetApplicationName(appName);
             return settings;
         }
