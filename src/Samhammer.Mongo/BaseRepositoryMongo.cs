@@ -10,9 +10,9 @@ namespace Samhammer.Mongo
     public class BaseRepositoryMongo<T> : IBaseRepositoryMongo<T>
         where T : BaseModelMongo
     {
-        public ILogger<BaseRepositoryMongo<T>> Logger { get; }
+        protected ILogger<BaseRepositoryMongo<T>> Logger { get; }
 
-        public IMongoCollection<T> Collection { get; }
+        protected IMongoCollection<T> Collection { get; }
 
         private IMongoDatabase Database { get; }
 
@@ -46,20 +46,15 @@ namespace Samhammer.Mongo
         {
             if (model.IsPersistent())
             {
-                var result = await Collection.ReplaceOneAsync(d => d.Id == model.Id, model);
+                var result = await Collection.ReplaceOneAsync(d => d.Id == model.Id, model, new ReplaceOptions { IsUpsert = true });
 
-                if (result.MatchedCount == 1)
+                if (result.MatchedCount == 0)
                 {
-                    Logger.LogTrace("Updated one model of type {ModelType} with ObjectId {ObjectId} in {Collection} collection", typeof(T), model.Id, Collection.CollectionNamespace);
-                }
-                else if (result.MatchedCount > 1)
-                {
-                    Logger.LogWarning("Updated multiple models of type {ModelType} with ObjectId {ObjectId} in {Collection} collection", typeof(T), model.Id, Collection.CollectionNamespace);
+                    Logger.LogTrace("Inserted model of type {ModelType} with ObjectId {ObjectId} into {Collection} collection", typeof(T), model.Id, Collection.CollectionNamespace);
                 }
                 else
                 {
-                    Logger.LogWarning("Updated zero models of type {ModelType} with ObjectId {ObjectId} in {Collection} collection", typeof(T), model.Id, Collection.CollectionNamespace);
-                    throw new MongoRepositoryException("update failed");
+                    Logger.LogTrace("Updated model of type {ModelType} with ObjectId {ObjectId} in {Collection} collection", typeof(T), model.Id, Collection.CollectionNamespace);
                 }
             }
             else
@@ -75,6 +70,15 @@ namespace Samhammer.Mongo
             {
                 await Collection.DeleteOneAsync(d => d.Id == model.Id);
                 Logger.LogTrace("Deleted model of type {ModelType} with ObjectId {ObjectId} from {Collection} collection", typeof(T), model.Id, Collection.CollectionNamespace);
+            }
+        }
+
+        public async Task DeleteById(string id)
+        {
+            if (!string.IsNullOrEmpty(id))
+            {
+                await Collection.DeleteOneAsync(d => d.Id == id);
+                Logger.LogTrace("Deleted model of type {ModelType} with ObjectId {ObjectId} from {Collection} collection", typeof(T), id, Collection.CollectionNamespace);
             }
         }
 

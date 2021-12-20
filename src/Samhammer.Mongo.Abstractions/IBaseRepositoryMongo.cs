@@ -13,6 +13,8 @@ namespace Samhammer.Mongo.Abstractions
 
         Task Delete(T model);
 
+        Task DeleteById(string id);
+
         Task DeleteAll();
     }
 }
