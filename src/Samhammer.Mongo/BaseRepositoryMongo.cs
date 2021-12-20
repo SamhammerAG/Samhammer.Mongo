@@ -16,6 +16,10 @@ namespace Samhammer.Mongo
 
         private IMongoDatabase Database { get; }
 
+        protected FilterDefinitionBuilder<T> Filter => Builders<T>.Filter;
+
+        protected UpdateDefinitionBuilder<T> Update => Builders<T>.Update;
+
         public BaseRepositoryMongo(ILogger<BaseRepositoryMongo<T>> logger, IMongoDbConnector connector)
         {
             Logger = logger;
