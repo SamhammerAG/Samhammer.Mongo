@@ -16,6 +16,8 @@ jobs:
         working-directory: src
     steps:
     - uses: actions/checkout@v2
+    - uses: olegtarasov/get-tag@v2.1
+      id: tag
     - uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.x
@@ -23,7 +25,7 @@ jobs:
     - uses: reviewdog/action-setup@v1
     - run: dotnet --info
     - run: dotnet restore
-    - run: dotnet build -c Release --no-restore | tee dotnet.buildlog
+    - run: dotnet build -c Release --no-restore -p:Version=${{ steps.tag.outputs.tag || '1.0' }} | tee dotnet.buildlog
     - uses: SamhammerAG/dotnet-reviewdog-action@v1
       with:
         workdir: src
