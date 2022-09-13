@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
 using Samhammer.Mongo.Abstractions;
@@ -46,6 +47,11 @@ namespace Samhammer.Mongo
             return Collection.AsQueryable().ToListAsync();
         }
 
+        [CodeTemplate(
+            searchTemplate: "$member$($expr$)",
+            Message = "The API is deprecated, use 'Create' instead or implement an update routine",
+            ReplaceTemplate = "$qualifier$.Create($expr$)",
+            ReplaceMessage = "Convert to 'Create'")]
         public virtual async Task Save(T model)
         {
             if (model.IsPersistent())
@@ -66,6 +72,12 @@ namespace Samhammer.Mongo
                 await Collection.InsertOneAsync(model);
                 Logger.LogTrace("Inserted model of type {ModelType} with ObjectId {ObjectId} into {Collection} collection", typeof(T), model.Id, Collection.CollectionNamespace);
             }
+        }
+
+        public async Task Create(T model)
+        {
+            await Collection.InsertOneAsync(model);
+            Logger.LogTrace("Inserted model of type {ModelType} with ObjectId {ObjectId} into {Collection} collection", typeof(T), model.Id, Collection.CollectionNamespace);
         }
 
         public virtual async Task Delete(T model)
