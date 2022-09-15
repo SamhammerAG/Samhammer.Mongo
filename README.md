@@ -80,6 +80,5 @@ Here is an example with the additional method GetByLoginName:
 ## Contribute
 
 #### How to publish package
-- set package version in Samhammer.Mongo.csproj and Samhammer.Mongo.Abstractions.csproj
 - create git tag
 - The nuget package will be published automatically by a github action
