@@ -95,7 +95,12 @@ Here is an example with Serilog configured in appsettings.json
 Here is an example how the log message will look like:
 
 ```
-mongodb command: { "find" : "label", "filter" : { "ProjectId" : ObjectId("63bfb836e9103fd33216f6b8") }, "$db" : "mytestdb", "lsid" : { "id" : CSUUID("c95ac0da-18d3-4fda-ac27-fe8e9eb0e034") } }
+mongodb command: {
+    "find" : "label",
+    "filter" : { "ProjectId" : ObjectId("63bfb836e9103fd33216f6b8") },
+    "$db" : "mytestdb",
+    "lsid" : { "id" : CSUUID("c95ac0da-18d3-4fda-ac27-fe8e9eb0e034") }
+}
 ```
 
 ## Contribute
