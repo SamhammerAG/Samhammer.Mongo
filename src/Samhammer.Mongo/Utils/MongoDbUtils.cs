@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 using Samhammer.Mongo.Abstractions;
 
@@ -22,6 +23,43 @@ namespace Samhammer.Mongo.Utils
 
             settings.ApplicationName = GetApplicationName(appName);
             return settings;
+        }
+
+        public static string GetMongoUrl(IConfiguration configuration)
+        {
+            var db = GetMongoDb(configuration);
+            var authDb = GetMongoAuthDb(configuration) ?? db;
+            var connectionString = GetMongoConnectionString(configuration);
+
+            var mongoUrlBuilder = new MongoUrlBuilder(connectionString)
+            {
+                AuthenticationSource = authDb,
+                Username = configuration[$"{nameof(MongoDbOptions)}:{nameof(MongoDbOptions.UserName)}"],
+                Password = configuration[$"{nameof(MongoDbOptions)}:{nameof(MongoDbOptions.Password)}"],
+            };
+
+            return mongoUrlBuilder.ToString();
+        }
+
+        public static string GetMongoDb(IConfiguration configuration)
+        {
+            return configuration[$"{nameof(MongoDbOptions)}:{nameof(MongoDbOptions.DatabaseName)}"]
+                .Truncate(MongoDbOptions.MaxDatabaseNameLength)
+                .ToLower();
+        }
+
+        private static string GetMongoAuthDb(IConfiguration configuration)
+        {
+            return configuration[$"{nameof(MongoDbOptions)}:{nameof(MongoDbOptions.AuthDatabaseName)}"]?
+                .Truncate(MongoDbOptions.MaxDatabaseNameLength)
+                .ToLower();
+        }
+
+        private static string GetMongoConnectionString(IConfiguration configuration)
+        {
+            var connectionString = configuration[$"{nameof(MongoDbOptions)}:{nameof(MongoDbOptions.ConnectionString)}"];
+            var dbHost = configuration[$"{nameof(MongoDbOptions)}:{nameof(MongoDbOptions.DatabaseHost)}"];
+            return !string.IsNullOrEmpty(connectionString) ? connectionString : $"mongodb://{dbHost}";
         }
 
         private static string GetApplicationName(string identifier = "")
