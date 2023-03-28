@@ -1,4 +1,5 @@
 ﻿using System;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Samhammer.Mongo
@@ -13,6 +14,11 @@ namespace Samhammer.Mongo
         public static IAggregateFluent<TResult> If<TResult>(this IAggregateFluent<TResult> aggregate, Func<bool> condition, Func<IAggregateFluent<TResult>, IAggregateFluent<TResult>> setup)
         {
             return condition() ? setup(aggregate) : aggregate;
+        }
+
+        public static IAggregateFluent<BsonDocument> AppendStageDynamic<TResult>(this IAggregateFluent<TResult> aggregate, Func<IAggregateFluent<BsonDocument>, IAggregateFluent<BsonDocument>> func)
+        {
+            return func(aggregate.As<BsonDocument>());
         }
     }
 }
