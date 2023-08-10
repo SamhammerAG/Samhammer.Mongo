@@ -1,6 +1,8 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
-using System.Threading;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -20,11 +22,8 @@ namespace Samhammer.Mongo
 
         private IMongoConventions Conventions { get; }
 
-        private static MongoClient client;
-
-        private static bool initialized;
-
-        private static object initializeLock = new object();
+        private static readonly Dictionary<string, MongoClient> Clients = new Dictionary<string, MongoClient>();
+        private static readonly object InitializeLock = new object();
 
         public MongoDbConnector(IOptions<MongoDbOptions> options, ILogger<MongoDbConnector> logger, IMongoConventions conventions)
         {
@@ -33,20 +32,30 @@ namespace Samhammer.Mongo
             Conventions = conventions;
         }
 
-        public IMongoDatabase GetMongoDatabase()
+        public IMongoDatabase GetMongoDatabase(string databaseName)
         {
-            var mongoClient = GetMongoClient();
-            return mongoClient.GetDatabase(Options.Value.DatabaseName);
+            var credential = GetCredential(databaseName);
+            var mongoClient = GetMongoClient(credential);
+            return mongoClient.GetDatabase(credential.DatabaseName);
         }
-
-        public MongoClient GetMongoClient()
+        
+        public MongoClient GetMongoClient(DatabaseCredential credential)
         {
-            return LazyInitializer.EnsureInitialized(ref client, ref initialized, ref initializeLock, InitClient);
+            lock (InitializeLock)
+            {
+                if (!Clients.TryGetValue(credential.DatabaseName, out var client))
+                {
+                    client = InitClient(credential);
+                    Clients[credential.DatabaseName] = client;
+                }
+
+                return client;
+            }
         }
-
-        public async Task<bool> Ping()
+        
+        public async Task<bool> Ping(string databaseName)
         {
-            var db = GetMongoDatabase();
+            var db = GetMongoDatabase(databaseName);
             var ping = await db
                 .RunCommandAsync<BsonDocument>(new BsonDocument { { "ping", 1 } }, default);
 
@@ -58,17 +67,17 @@ namespace Samhammer.Mongo
             return false;
         }
 
-        private MongoClient InitClient()
+        private MongoClient InitClient(DatabaseCredential credential)
         {
             Logger.LogInformation(
                 "Creating new connection to database {DatabaseName} on {ConnectionString} as user {UserName}",
-                Options.Value.DatabaseName,
+                credential.DatabaseName,
                 Options.Value.ConnectionString,
-                Options.Value.UserName);
+                credential.UserName);
 
             Conventions.Register();
 
-            var mongoClientSettings = MongoDbUtils.GetMongoClientSettings(Options.Value);
+            var mongoClientSettings = MongoDbUtils.GetMongoClientSettings(Options.Value, credential);
             RegisterLogging(mongoClientSettings);
 
             return new MongoClient(mongoClientSettings);
@@ -101,14 +110,25 @@ namespace Samhammer.Mongo
        
             return new TraceSourceEventSubscriber(traceSource);
         }
+
+        private DatabaseCredential GetCredential(string databaseName)
+        {
+            if (string.IsNullOrWhiteSpace(databaseName))
+            {
+                databaseName = Options.Value.DatabaseCredentials[0].DatabaseName;
+            }
+
+            var credential = Options.Value.DatabaseCredentials.FirstOrDefault(c => c.DatabaseName == databaseName);
+            return credential ?? throw new ArgumentException($"Database credentials not found for database: {databaseName}");
+        }
     }
 
     public interface IMongoDbConnector
     {
-        IMongoDatabase GetMongoDatabase();
+        IMongoDatabase GetMongoDatabase(string databaseName);
 
-        MongoClient GetMongoClient();
+        MongoClient GetMongoClient(DatabaseCredential credential);
 
-        Task<bool> Ping();
+        Task<bool> Ping(string databaseName);
     }
 }

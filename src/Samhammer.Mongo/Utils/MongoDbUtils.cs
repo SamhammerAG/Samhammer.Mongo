@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
@@ -9,52 +11,53 @@ namespace Samhammer.Mongo.Utils
 {
     public static class MongoDbUtils
     {
-        public static MongoClientSettings GetMongoClientSettings(MongoDbOptions options, string appName = "")
+        public static MongoClientSettings GetMongoClientSettings(MongoDbOptions options, DatabaseCredential credential, string appName = "")
         {
             var settings = MongoClientSettings.FromConnectionString(options.ConnectionString);
 
-            if (!string.IsNullOrEmpty(options.UserName))
+            if (!string.IsNullOrEmpty(credential.UserName))
             {
                 settings.Credential = MongoCredential.CreateCredential(
-                    options.AuthDatabaseName ?? options.DatabaseName,
-                    options.UserName,
-                    options.Password);
+                    credential.AuthDatabaseName ?? credential.DatabaseName,
+                    credential.UserName,
+                    credential.Password);
             }
 
             settings.ApplicationName = GetApplicationName(appName);
             return settings;
         }
 
-        public static string GetMongoUrl(IConfiguration configuration)
+        public static string GetMongoUrl(IConfiguration configuration, DatabaseCredential credential = null)
         {
-            var db = GetMongoDb(configuration);
-            var authDb = GetMongoAuthDb(configuration) ?? db;
+            if (credential == null)
+            {
+                var credentialsSection = configuration.GetSection($"{nameof(MongoDbOptions)}:{nameof(MongoDbOptions.DatabaseCredentials)}");
+                var credentials = credentialsSection.Get<List<DatabaseCredential>>();
+
+                credential = credentials.First();
+            }
+
+            var db = GetTruncateMongoDb(credential.DatabaseName);
+            var authDb = GetTruncateMongoDb(credential.AuthDatabaseName) ?? db;
             var connectionString = GetMongoConnectionString(configuration);
 
             var mongoUrlBuilder = new MongoUrlBuilder(connectionString)
             {
                 AuthenticationSource = authDb,
-                Username = configuration[$"{nameof(MongoDbOptions)}:{nameof(MongoDbOptions.UserName)}"],
-                Password = configuration[$"{nameof(MongoDbOptions)}:{nameof(MongoDbOptions.Password)}"],
+                Username = credential.UserName,
+                Password = credential.Password,
             };
 
             return mongoUrlBuilder.ToString();
         }
 
-        public static string GetMongoDb(IConfiguration configuration)
+        public static string GetTruncateMongoDb(string databaseName)
         {
-            return configuration[$"{nameof(MongoDbOptions)}:{nameof(MongoDbOptions.DatabaseName)}"]
+            return databaseName?
                 .Truncate(MongoDbOptions.MaxDatabaseNameLength)
                 .ToLower();
         }
-
-        private static string GetMongoAuthDb(IConfiguration configuration)
-        {
-            return configuration[$"{nameof(MongoDbOptions)}:{nameof(MongoDbOptions.AuthDatabaseName)}"]?
-                .Truncate(MongoDbOptions.MaxDatabaseNameLength)
-                .ToLower();
-        }
-
+        
         private static string GetMongoConnectionString(IConfiguration configuration)
         {
             var connectionString = configuration[$"{nameof(MongoDbOptions)}:{nameof(MongoDbOptions.ConnectionString)}"];
