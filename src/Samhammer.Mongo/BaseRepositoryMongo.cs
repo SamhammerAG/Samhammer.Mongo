@@ -19,11 +19,11 @@ namespace Samhammer.Mongo
         protected FilterDefinitionBuilder<T> Filter => Builders<T>.Filter;
 
         protected UpdateDefinitionBuilder<T> Update => Builders<T>.Update;
-
-        public BaseRepositoryMongo(ILogger<BaseRepositoryMongo<T>> logger, IMongoDbConnector connector)
+        
+        public BaseRepositoryMongo(ILogger<BaseRepositoryMongo<T>> logger, IMongoDbConnector connector, string databaseName = null)
         {
             Logger = logger;
-            Database = connector.GetMongoDatabase();
+            Database = connector.GetMongoDatabase(databaseName);
             Collection = GetCollection<T>();
         }
 
