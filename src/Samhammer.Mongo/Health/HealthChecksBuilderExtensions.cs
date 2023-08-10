@@ -50,13 +50,13 @@ namespace Samhammer.Mongo.Health
 
         private static MongoDbHealthCheck GetMongoDbHealthCheck(IServiceProvider serviceProvider, DatabaseCredential credential = null)
         {
-            var mongoDbOptions = serviceProvider.GetRequiredService<IOptions<MongoDbOptions>>();
             if (credential == null)
             {
+                var mongoDbOptions = serviceProvider.GetRequiredService<IOptions<MongoDbOptions>>();
                 credential = mongoDbOptions.Value.DatabaseCredentials[0];
             }
 
-            var mongoClientSettings = MongoDbUtils.GetMongoClientSettings(mongoDbOptions.Value, credential, "health");
+            var mongoClientSettings = MongoDbUtils.GetMongoClientSettings(credential, "health");
             return new MongoDbHealthCheck(mongoClientSettings, credential.DatabaseName);
         }
     }

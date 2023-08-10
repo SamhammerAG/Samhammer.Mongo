@@ -11,9 +11,9 @@ namespace Samhammer.Mongo.Utils
 {
     public static class MongoDbUtils
     {
-        public static MongoClientSettings GetMongoClientSettings(MongoDbOptions options, DatabaseCredential credential, string appName = "")
+        public static MongoClientSettings GetMongoClientSettings(DatabaseCredential credential, string appName = "")
         {
-            var settings = MongoClientSettings.FromConnectionString(options.ConnectionString);
+            var settings = MongoClientSettings.FromConnectionString(credential.ConnectionString);
 
             if (!string.IsNullOrEmpty(credential.UserName))
             {
@@ -39,7 +39,7 @@ namespace Samhammer.Mongo.Utils
 
             var db = GetTruncateMongoDb(credential.DatabaseName);
             var authDb = GetTruncateMongoDb(credential.AuthDatabaseName) ?? db;
-            var connectionString = GetMongoConnectionString(configuration);
+            var connectionString = GetMongoConnectionString(credential);
 
             var mongoUrlBuilder = new MongoUrlBuilder(connectionString)
             {
@@ -58,11 +58,9 @@ namespace Samhammer.Mongo.Utils
                 .ToLower();
         }
         
-        private static string GetMongoConnectionString(IConfiguration configuration)
+        private static string GetMongoConnectionString(DatabaseCredential credential)
         {
-            var connectionString = configuration[$"{nameof(MongoDbOptions)}:{nameof(MongoDbOptions.ConnectionString)}"];
-            var dbHost = configuration[$"{nameof(MongoDbOptions)}:{nameof(MongoDbOptions.DatabaseHost)}"];
-            return !string.IsNullOrEmpty(connectionString) ? connectionString : $"mongodb://{dbHost}";
+            return !string.IsNullOrEmpty(credential.ConnectionString) ? credential.ConnectionString : $"mongodb://{credential.DatabaseHost}";
         }
 
         private static string GetApplicationName(string identifier = "")

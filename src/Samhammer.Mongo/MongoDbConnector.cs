@@ -72,12 +72,12 @@ namespace Samhammer.Mongo
             Logger.LogInformation(
                 "Creating new connection to database {DatabaseName} on {ConnectionString} as user {UserName}",
                 credential.DatabaseName,
-                Options.Value.ConnectionString,
+                credential.ConnectionString,
                 credential.UserName);
 
             Conventions.Register();
 
-            var mongoClientSettings = MongoDbUtils.GetMongoClientSettings(Options.Value, credential);
+            var mongoClientSettings = MongoDbUtils.GetMongoClientSettings(credential);
             RegisterLogging(mongoClientSettings);
 
             return new MongoClient(mongoClientSettings);

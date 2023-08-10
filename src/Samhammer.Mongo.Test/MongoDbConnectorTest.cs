@@ -67,7 +67,6 @@ namespace Samhammer.Mongo.Test
             };
             return new MongoDbOptions
             {
-                DatabaseHost = "localhost:27017",
                 DatabaseCredentials = credentials,
             };
         }
@@ -76,6 +75,7 @@ namespace Samhammer.Mongo.Test
         {
             return new DatabaseCredential
             {
+                DatabaseHost = "localhost:27017",
                 DatabaseName = dbName,
                 UserName = user,
                 Password = password,

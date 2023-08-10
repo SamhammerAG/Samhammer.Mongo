@@ -46,7 +46,7 @@ namespace Samhammer.Mongo.Test
         public void GetMongoClientSettings_ReturnsSettingsWithCredential()
         {
             // Act
-            var result = MongoDbUtils.GetMongoClientSettings(mongoDbOptions, mongoDbOptions.DatabaseCredentials[0]);
+            var result = MongoDbUtils.GetMongoClientSettings(mongoDbOptions.DatabaseCredentials[0]);
 
             // Assert
             Assert.Equal(mongoDbOptions.DatabaseCredentials[0].UserName, result.Credential.Username);
@@ -64,9 +64,7 @@ namespace Samhammer.Mongo.Test
         {
             // Arrange
             var configuration = Substitute.For<IConfiguration>();
-            configuration[$"{nameof(MongoDbOptions)}:{nameof(MongoDbOptions.ConnectionString)}"].Returns("mongodb://localhost");
-            configuration[$"{nameof(MongoDbOptions)}:{nameof(MongoDbOptions.DatabaseHost)}"].Returns("localhost");
-
+            
             var credential = GetCredential();
             var expectedUrl = "mongodb://testuser:123@localhost/?authSource=admin";
 
@@ -82,9 +80,7 @@ namespace Samhammer.Mongo.Test
         {
             // Arrange
             var configuration = Substitute.For<IConfiguration>();
-            configuration[$"{nameof(MongoDbOptions)}:{nameof(MongoDbOptions.ConnectionString)}"].Returns("mongodb://localhost");
-            configuration[$"{nameof(MongoDbOptions)}:{nameof(MongoDbOptions.DatabaseHost)}"].Returns("localhost");
-
+            
             var credential = GetCredential();
             credential.AuthDatabaseName = null;
             credential.DatabaseName = "ThisIsVeryVeryVeryVeryVeryVeryLongDatabaseNameAndExceededTheMaxValueOfDatabase";
@@ -105,7 +101,6 @@ namespace Samhammer.Mongo.Test
             };
             return new MongoDbOptions
             {
-                DatabaseHost = "localhost:27017",
                 DatabaseCredentials = credentials,
             };
         }
@@ -118,6 +113,7 @@ namespace Samhammer.Mongo.Test
                 UserName = "testuser",
                 Password = "123",
                 AuthDatabaseName = "admin",
+                DatabaseHost = "localhost:27017",
             };
         }
 
