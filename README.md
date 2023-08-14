@@ -7,9 +7,9 @@ The package also supports multiple connections from different servers.
 #### How to add this to your project:
 - reference this package to your main project: https://www.nuget.org/packages/Samhammer.Mongo/
 - reference this package to your model project: https://www.nuget.org/packages/Samhammer.Mongo.Abstractions/
-- initialize mongodb in Startup.cs
-- add the health check to Startup.cs (optional)
-- add the mongodb configuration to the appsettings (if the lib is initialized with IConfiguration in Startup.cs)
+- initialize mongodb in Program.cs
+- add the health check to Program.cs (optional)
+- add the mongodb configuration to the appsettings (if the lib is initialized with IConfiguration in Program.cs)
 
 #### Example Program.cs:
 ```csharp

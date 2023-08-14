@@ -118,7 +118,7 @@ namespace Samhammer.Mongo
                 databaseName = Options.Value.DatabaseCredentials[0].DatabaseName;
             }
 
-            var credential = Options.Value.DatabaseCredentials.FirstOrDefault(c => c.DatabaseName == databaseName);
+            var credential = Options.Value.DatabaseCredentials.FirstOrDefault(c => c.DatabaseName.Equals(databaseName, StringComparison.OrdinalIgnoreCase));
             return credential ?? throw new ArgumentException($"Database credentials not found for database: {databaseName}");
         }
     }

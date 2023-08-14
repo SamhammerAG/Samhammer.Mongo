@@ -51,7 +51,7 @@ namespace Samhammer.Mongo.Test
 
             // Act
             var database1 = mongoDbConnector.GetMongoDatabase(credential1.DatabaseName);
-            var database2 = mongoDbConnector.GetMongoDatabase(credential2.DatabaseName);
+            var database2 = mongoDbConnector.GetMongoDatabase("samhammer-MONGO2"); // ignore case
 
             // Assert
             Assert.Equal(credential1.DatabaseName, database1.DatabaseNamespace.DatabaseName);
