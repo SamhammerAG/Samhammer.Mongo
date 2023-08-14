@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace Samhammer.Mongo.Test
 {
@@ -75,7 +76,7 @@ namespace Samhammer.Mongo.Test
         private async Task Connect()
         {
             var connectTimer = Stopwatch.StartNew();
-            await mongoDbConnector.Ping();
+            await mongoDbConnector.Ping(GetCredential().DatabaseName);
             connectTimer.Stop();
 
             output.WriteLine("mongo connect time: {0}", connectTimer.Elapsed);
@@ -130,20 +131,33 @@ namespace Samhammer.Mongo.Test
 
         private MongoDbOptions GetMongoDbOptions()
         {
+            var credentials = new List<DatabaseCredential>
+            {
+                GetCredential(),
+            };
             return new MongoDbOptions
             {
-                DatabaseHost = "localhost:27017",
-                DatabaseName = "samhammer-mongo",
-                AuthDatabaseName = "admin",
-                UserName = null,
-                Password = null,
+                DatabaseCredentials = credentials,
             };
         }
 
         private async Task CleanDb()
         {
-            var adminClient = mongoDbConnector.GetMongoClient();
-            await adminClient.DropDatabaseAsync(mongoDbOptions.DatabaseName);
+            var credential = GetCredential();
+            var adminClient = mongoDbConnector.GetMongoClient(credential);
+            await adminClient.DropDatabaseAsync(credential.DatabaseName);
+        }
+
+        private DatabaseCredential GetCredential()
+        {
+            return new DatabaseCredential
+            {
+                DatabaseHost = "localhost:27017",
+                DatabaseName = "samhammer-mongo",
+                UserName = null,
+                Password = null,
+                AuthDatabaseName = "admin",
+            };
         }
 
         public void Dispose()

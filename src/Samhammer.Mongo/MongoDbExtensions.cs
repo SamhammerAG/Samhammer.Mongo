@@ -36,7 +36,10 @@ namespace Samhammer.Mongo
 
         private static void PostConfigureMongo(MongoDbOptions options)
         {
-            options.DatabaseName = options.DatabaseName.Truncate(MongoDbOptions.MaxDatabaseNameLength).ToLower();
+            for (var i = 0; i < options.DatabaseCredentials.Count; i++)
+            {
+                options.DatabaseCredentials[i].DatabaseName = options.DatabaseCredentials[i].DatabaseName.Truncate(MongoDbOptions.MaxDatabaseNameLength).ToLower();
+            }
         }
     }
 }

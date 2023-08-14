@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Samhammer.Mongo
 {
@@ -14,10 +15,13 @@ namespace Samhammer.Mongo
 
         private ILogger<InitializeConnectionService> Logger { get; }
 
-        public InitializeConnectionService(IServiceScopeFactory services, ILogger<InitializeConnectionService> logger)
+        private IOptions<MongoDbOptions> Options { get; }
+
+        public InitializeConnectionService(IServiceScopeFactory services, ILogger<InitializeConnectionService> logger, IOptions<MongoDbOptions> options)
         {
             Services = services;
             Logger = logger;
+            Options = options;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -30,7 +34,11 @@ namespace Samhammer.Mongo
                     var mongoConnector = scope.ServiceProvider.GetRequiredService<IMongoDbConnector>();
 
                     var connectTimer = Stopwatch.StartNew();
-                    await mongoConnector.Ping();
+                    foreach (var credential in Options.Value.DatabaseCredentials)
+                    {
+                       await mongoConnector.Ping(credential.DatabaseName);
+                    }
+
                     connectTimer.Stop();
 
                     Logger.LogInformation("mongodb connected in {ConnectTime} ms", (int)connectTimer.Elapsed.TotalMilliseconds);
