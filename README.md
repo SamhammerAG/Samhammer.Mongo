@@ -2,6 +2,7 @@
 
 ## Usage
 This package provides access to mongodb over the mongodb driver. It includes basic access functionality to the database and provides a possibility to define models.
+The package also supports multiple connections from different servers.
 
 #### How to add this to your project:
 - reference this package to your main project: https://www.nuget.org/packages/Samhammer.Mongo/
@@ -10,7 +11,7 @@ This package provides access to mongodb over the mongodb driver. It includes bas
 - add the health check to Startup.cs (optional)
 - add the mongodb configuration to the appsettings (if the lib is initialized with IConfiguration in Startup.cs)
 
-#### Example Startup.cs:
+#### Example Program.cs:
 ```csharp
    public void ConfigureServices(IServiceCollection services)
    {
@@ -21,15 +22,38 @@ This package provides access to mongodb over the mongodb driver. It includes bas
    }
 ```
 
+##### For multiple credentials:
+```csharp
+   public void ConfigureServices(IServiceCollection services)
+   {
+       services.AddMongoDb(Configuration); // Init by configuration or action
+
+       services.AddHealthChecks()
+                .AddMongoDb(credentials);       
+   }
+```
+
 #### Example appsettings configuration:
 ```json
   "MongoDbOptions": {
-    "UserName": "dbuser",
-    "Password": "dbpassword",
-    "DatabaseName": "dbname",
-    "AuthDatabaseName": "admin", // defaults to the database name
-    "DatabaseHost": "dbhost.tld",
-    "ConnectionString": "mongodb://dbhost.tld" // alternative to DatabaseHost
+    "DatabaseCredentials": [
+      {
+        "UserName": "dbuser",
+        "Password": "dbpassword",
+        "DatabaseName": "dbname",
+        "AuthDatabaseName": "admin", // defaults to the database name
+        "DatabaseHost": "dbhost.tld",
+        "ConnectionString": "mongodb://dbhost.tld" // alternative to DatabaseHost
+      },
+      {
+        "UserName": "dbuser2",
+        "Password": "dbpassword2",
+        "DatabaseName": "dbname2",
+        "AuthDatabaseName": "admin", // defaults to the database name
+        "DatabaseHost": "dbhost2.tld",
+        "ConnectionString": "mongodb://dbhost2.tld" // alternative to DatabaseHost
+      }
+    ]
   },
 ```
 
@@ -54,7 +78,7 @@ The base repo provides the following actions:
   * Task Delete(T model);
   * Task DeleteAll();
 
-Here is an example with the additional method GetByLoginName:
+Here is an example with the additional method GetByLoginName. If the database name is not provided, the library will use the first set of DatabaseCredentials in appsetting:
 
 ```csharp
     public class UserRepositoryMongo : BaseRepositoryMongo<UserModel>, IUserRepositoryMongo
@@ -74,6 +98,17 @@ Here is an example with the additional method GetByLoginName:
     public interface IUserRepositoryMongo : IBaseRepositoryMongo<UserModel>
     {
         Task<UserModel> GetByLoginName(string loginName);
+    }
+```
+
+To specify which credential should be used:
+```csharp
+    public class UserRepositoryMongo : BaseRepositoryMongo<UserModel>, IUserRepositoryMongo
+    {
+        public UserRepositoryMongo(ILogger<UserRepositoryMongo> logger, IMongoDbConnector connector)
+            : base(logger, connector, "dbName")
+        {
+        }
     }
 ```
 
