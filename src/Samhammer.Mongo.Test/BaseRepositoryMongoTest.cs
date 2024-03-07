@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 
 namespace Samhammer.Mongo.Test
 {
@@ -103,8 +102,18 @@ namespace Samhammer.Mongo.Test
 
         private async Task SaveWithInvalidId()
         {
-            var user = new TestUserModel { Id = "1b2750bd666ed759583681ea" };
-            await Assert.ThrowsAnyAsync<MongoRepositoryException>(() => repository.Save(user));
+            var invalidIds = new[]
+            {
+                "1b2750bd666ed759583681eaff", // one byte too long
+                "1b2750bd666ed759583681ex", // invalid char but correct length (x is not hex)
+                "1b2750bd666ed759583681", // one byte too short
+            };
+
+            foreach (var invalidId in invalidIds)
+            {
+                var user = new TestUserModel { Id = invalidId };
+                await Assert.ThrowsAnyAsync<FormatException>(async () => await repository.Save(user));
+            }
         }
 
         private async Task GetAll(List<TestUserModel> users)
