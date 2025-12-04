@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
@@ -12,19 +13,23 @@ namespace Samhammer.Mongo
     {
         protected ILogger<BaseRepositoryMongo<T>> Logger { get; }
 
-        protected IMongoCollection<T> Collection { get; }
+        protected IMongoCollection<T> Collection => collection.Value;
 
-        private IMongoDatabase Database { get; }
+        private IMongoDatabase Database => database.Value;
 
         protected FilterDefinitionBuilder<T> Filter => Builders<T>.Filter;
 
         protected UpdateDefinitionBuilder<T> Update => Builders<T>.Update;
-        
+
+        private readonly Lazy<IMongoCollection<T>> collection;
+
+        private readonly Lazy<IMongoDatabase> database;
+
         public BaseRepositoryMongo(ILogger<BaseRepositoryMongo<T>> logger, IMongoDbConnector connector, string databaseName = null)
         {
             Logger = logger;
-            Database = connector.GetMongoDatabase(databaseName);
-            Collection = GetCollection<T>();
+            database = new Lazy<IMongoDatabase>(() => connector.GetMongoDatabase(databaseName));
+            collection = new Lazy<IMongoCollection<T>>(GetCollection<T>);
         }
 
         protected IMongoCollection<TR> GetCollection<TR>()
