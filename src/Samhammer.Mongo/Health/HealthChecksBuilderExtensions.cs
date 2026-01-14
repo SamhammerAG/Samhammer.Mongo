@@ -5,6 +5,7 @@ using HealthChecks.MongoDb;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 using Samhammer.Mongo.Utils;
 
 namespace Samhammer.Mongo.Health
@@ -57,7 +58,8 @@ namespace Samhammer.Mongo.Health
             }
 
             var mongoClientSettings = MongoDbUtils.GetMongoClientSettings(credential, "health");
-            return new MongoDbHealthCheck(mongoClientSettings, credential.DatabaseName);
+            var client = new MongoClient(mongoClientSettings);
+            return new MongoDbHealthCheck(client, credential.DatabaseName);
         }
     }
 }
