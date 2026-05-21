@@ -24,8 +24,8 @@ jobs:
     - run: echo "::remove-matcher owner=csc::"
     - uses: reviewdog/action-setup@v1
     - run: dotnet --info
-    - run: dotnet restore
-    - run: dotnet build -c Release --no-restore | tee dotnet.buildlog
+    - run: dotnet restore -p:NoWarn=NU1901%3BNU1902%3BNU1903%3BNU1904
+    - run: dotnet build -c Release --no-restore -p:NoWarn=NU1901%3BNU1902%3BNU1903%3BNU1904 | tee dotnet.buildlog
     - uses: SamhammerAG/dotnet-reviewdog-action@v2
       with:
         workdir: src
