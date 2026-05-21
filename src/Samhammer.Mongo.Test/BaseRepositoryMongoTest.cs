@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -6,7 +6,6 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Samhammer.Mongo.Test
 {
@@ -32,11 +31,11 @@ namespace Samhammer.Mongo.Test
             repository = new BaseRepositoryMongo<TestUserModel>(repoLogger, mongoDbConnector);
         }
 
-        [SkippableFact]
+        [Fact]
         public async Task RepositoryActions()
         {
             // Change the connection settings in GetMongoDbOptions() before debugging
-            Skip.IfNot(Debugger.IsAttached, "Only for debugging");
+            Assert.SkipUnless(Debugger.IsAttached, "Only for debugging");
 
             await Connect();
 
