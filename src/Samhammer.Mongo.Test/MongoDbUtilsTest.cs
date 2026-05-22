@@ -20,12 +20,6 @@ namespace Samhammer.Mongo.Test
             var mongoDbIOptions = Microsoft.Extensions.Options.Options.Create(mongoDbOptions);
         }
 
-        [Fact]
-        public void TestFail()
-        {
-            Assert.Fail("just testing fail.");
-        }
-
         [Theory]
         [InlineData(typeof(TestDataModel), "testData")]
         [InlineData(typeof(TestDataModelWithCustomName), "TestDataModel")]
