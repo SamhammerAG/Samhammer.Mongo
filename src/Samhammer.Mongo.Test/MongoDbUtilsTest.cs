@@ -1,6 +1,6 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using FluentAssertions;
+using AwesomeAssertions;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 using NSubstitute;
@@ -64,7 +64,7 @@ namespace Samhammer.Mongo.Test
         {
             // Arrange
             var configuration = Substitute.For<IConfiguration>();
-            
+
             var credential = GetCredential();
             var expectedUrl = "mongodb://testuser:123@localhost/?authSource=admin";
 
@@ -80,7 +80,7 @@ namespace Samhammer.Mongo.Test
         {
             // Arrange
             var configuration = Substitute.For<IConfiguration>();
-            
+
             var credential = GetCredential();
             credential.AuthDatabaseName = null;
             credential.DatabaseName = "ThisIsVeryVeryVeryVeryVeryVeryLongDatabaseNameAndExceededTheMaxValueOfDatabase";
