@@ -1,0 +1,8 @@
+﻿<Project>
+  <ItemGroup>
+    <!-- SharpCompress directory-traversal advisory does not affect this project
+         as it is only pulled in transitively by MongoDB.Driver which only uses
+         in-memory ZLib stream compression. Remove once MongoDB.Driver drops the dependency. -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-6c8g-7p36-r338" />
+  </ItemGroup>
+</Project>

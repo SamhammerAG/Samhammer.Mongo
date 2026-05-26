@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using FluentAssertions;
+using AwesomeAssertions;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 using NSubstitute;
@@ -23,7 +23,7 @@ namespace Samhammer.Mongo.Test
         [Theory]
         [InlineData(typeof(TestDataModel), "testData")]
         [InlineData(typeof(TestDataModelWithCustomName), "TestDataModel")]
-        private void GetCollectionName(Type modelType, string collectionName)
+        public void GetCollectionName(Type modelType, string collectionName)
         {
             var name = MongoDbUtils.GetCollectionName(modelType);
             name.Should().Be(collectionName);
@@ -36,7 +36,7 @@ namespace Samhammer.Mongo.Test
         [InlineData("abcd", false)]
         [InlineData("1a3d", false)]
         [InlineData("5c9e1ae71d07dc6a14617513", true)]
-        private void IsValidObjectId(string id, bool expected)
+        public void IsValidObjectId(string id, bool expected)
         {
             var result = MongoDbUtils.IsValidObjectId(id);
             result.Should().Be(expected);
@@ -64,7 +64,7 @@ namespace Samhammer.Mongo.Test
         {
             // Arrange
             var configuration = Substitute.For<IConfiguration>();
-            
+
             var credential = GetCredential();
             var expectedUrl = "mongodb://testuser:123@localhost/?authSource=admin";
 
@@ -80,7 +80,7 @@ namespace Samhammer.Mongo.Test
         {
             // Arrange
             var configuration = Substitute.For<IConfiguration>();
-            
+
             var credential = GetCredential();
             credential.AuthDatabaseName = null;
             credential.DatabaseName = "ThisIsVeryVeryVeryVeryVeryVeryLongDatabaseNameAndExceededTheMaxValueOfDatabase";
